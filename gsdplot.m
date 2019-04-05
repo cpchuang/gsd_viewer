@@ -112,8 +112,8 @@ elseif ~isfield(da(1),'Inst')
     fprintf('Use default TOA  = 3 (deg)\n');
     fprintf('Use default Ch2E = [0.052 0];\n');
     detpar = zeros(192,3);
-    detpar(:,1) = 0.052;
-    detpar(:,3) = 3;
+    detpar(:,2) = 0.052;
+    detpar(:,1) = 3;
 end
 
 % calculate E_grid, d_grid
@@ -151,10 +151,10 @@ switch lower(type)
                 x_grid = 5:0.05:210;
                 img = zeros(192,length(x_grid));
                 for i = 1:192
-                    if detpar(i,1) == 0
-                        detpar(i,1) = 0.05;
+                    if detpar(i,end-1) == 0
+                        detpar(i,end-1) = 0.05;
                     end
-                    xdata = polyval(detpar(i,1:end-1),[1:4096]);
+                    xdata = polyval(detpar(i,2:end),[1:4096]);
                     ydata = da(1).data{scno}(i,:);
                     img(i,:) =  interp1(xdata,ydata,x_grid,'pchip');
                 end
@@ -164,11 +164,11 @@ switch lower(type)
                 x_grid = 0.7:0.01:5;
                 img = zeros(192,length(x_grid));
                 for i = 1:192
-                    if detpar(i,1) == 0
-                        detpar(i,1) = 0.05;
+                    if detpar(i,end-1) == 0
+                        detpar(i,end-1) = 0.05;
                     end
-                    E_list = polyval(detpar(i,1:end-1),[1:4096]);
-                    xdata = hc./E_list/2./sind(detpar(i,end)/2); 
+                    E_list = polyval(detpar(i,2:end),[1:4096]);
+                    xdata = hc./E_list/2./sind(detpar(i,1)/2); 
                     ydata = da(1).data{scno}(i,:);
                     img(i,:) =  interp1(xdata,ydata,x_grid,'pchip');
                 end
@@ -228,10 +228,11 @@ switch lower(type)
             ydata = img(posno(i),:);
             switch lower(x_unit)
                 case {'e','energy'}
-                    xdata = [1:4096]*detpar(posno(i),1)+detpar(posno(i),2);
+                    xdata = polyval(detpar(posno(i),2:end),[1:4096]);
                 case {'d'}
-                    E_list = [1:4096]*detpar(posno(i),1)+detpar(posno(i),2);
-                    xdata = hc./E_list/2./sind(detpar(posno(i),3)/2);
+                    %E_list = [1:4096]*detpar(posno(i),1)+detpar(posno(i),2);
+                    E_list = polyval(detpar(posno(i),2:end),[1:4096]);
+                    xdata = hc./E_list/2./sind(detpar(posno(i),1)/2);
             end
             line(xdata,ydata,'marker','.','color',cc(i,:),'displayname',sprintf('px-%d',posno(i)))
         end
